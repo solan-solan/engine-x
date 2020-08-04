@@ -31,13 +31,10 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
-#ifdef OPENAL_PLAIN_INCLUDES
-#include <al.h>
-#else
-#include <AL/al.h>
-#endif
+
 #include "audio/include/AudioMacros.h"
 #include "platform/CCPlatformMacros.h"
+#include "audio/include/alconfig.h"
 
 NS_CC_BEGIN
 
@@ -46,6 +43,7 @@ class AudioEngineImpl;
 
 class CC_DLL AudioPlayer
 {
+    friend class AudioEngineImpl;
 public:
     AudioPlayer();
     ~AudioPlayer();
@@ -63,6 +61,9 @@ protected:
     void setCache(AudioCache* cache);
     void rotateBufferThread(int offsetFrame);
     bool play2d();
+#if !CC_USE_ALSOFT
+    void wakeupRotateThread();
+#endif
 
     AudioCache* _audioCache;
 
@@ -84,6 +85,9 @@ protected:
     std::mutex _sleepMutex;
     bool _timeDirty;
     bool _isRotateThreadExited;
+#if !CC_USE_ALSOFT
+    std::atomic_bool _needWakeupRotateThread;
+#endif
 
     std::mutex _play2dMutex;
 

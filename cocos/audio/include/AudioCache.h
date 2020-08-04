@@ -33,20 +33,9 @@
 #include <vector>
 #include <memory>
 
-#if CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_MAC
-#import <OpenAL/al.h>
-#else
-#ifdef OPENAL_PLAIN_INCLUDES
-#include <al.h>
-#include <alext.h>
-#else
-#include <AL/al.h>
-#include <AL/alext.h>
-#endif
-#endif
-
 #include "platform/CCPlatformMacros.h"
 #include "audio/include/AudioMacros.h"
+#include "audio/include/alconfig.h"
 
 NS_CC_BEGIN
 
@@ -91,7 +80,6 @@ protected:
      * Cache pcm data when sizeInBytes less than PCMDATA_CACHEMAXSIZE
      */
     ALuint _alBufferId;
-    char* _pcmData;
 
     /*Queue buffer related stuff
      *  Streaming in OpenAL when sizeInBytes greater then PCMDATA_CACHEMAXSIZE

@@ -32,11 +32,7 @@
 #include "platform/CCFileUtils.h"
 #include "base/ccUtils.h"
 
-#if CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_MAC
-#include "audio/apple/AudioEngineImpl.h"
-#else
 #include "audio/include/AudioEngineImpl.h"
-#endif
 
 #define TIME_DELAY_PRECISION 0.0001
 
@@ -143,6 +139,10 @@ private:
 
 void AudioEngine::end()
 {
+    // make sure everythings cleanup before delete audio engine
+    // fix #127
+    uncacheAll();
+
     if (s_threadPool)
     {
         delete s_threadPool;

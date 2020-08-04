@@ -25,6 +25,8 @@
 #include "HelloWorldScene.h"
 #include "AppMacros.h"
 
+#include "pugixml_imp.hpp"
+
 USING_NS_CC;
 
 
@@ -42,7 +44,7 @@ bool HelloWorld::init()
     {
         return false;
     }
-    
+
     auto visibleSize = Director::getInstance()->getVisibleSize();
     auto origin = Director::getInstance()->getVisibleOrigin();
 

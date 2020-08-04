@@ -31,11 +31,11 @@ cmake_minimum_required(VERSION 3.6)
 project(Cocos2d-x)
 
 # set default minimum deployment target
-if(XCODE)
-    if(NOT DEFINED CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET)
-        SET (CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0)
-    endif()
-endif()
+# if(XCODE)
+#    if(NOT DEFINED CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET)
+#        SET (CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0)
+#    endif()
+# endif()
 
 # cocos2dx root path
 set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
@@ -57,6 +57,10 @@ set(BUILD_ENGINE_DONE ON)
 # add cpp tests default
 add_subdirectory(${COCOS2DX_ROOT_PATH}/tests/cpp-empty-test ${ENGINE_BINARY_PATH}/tests/cpp-empty-test)
 add_subdirectory(${COCOS2DX_ROOT_PATH}/tests/cpp-tests ${ENGINE_BINARY_PATH}/tests/cpp-tests)
+
+if(BUILD_EXTENSION_FAIRYGUI)
+  add_subdirectory(${COCOS2DX_ROOT_PATH}/tests/fairygui-tests ${ENGINE_BINARY_PATH}/tests/fairygui-tests)
+endif()
 
 if(BUILD_LUA_LIBS)
   add_subdirectory(${COCOS2DX_ROOT_PATH}/tests/lua-empty-test/project ${ENGINE_BINARY_PATH}/tests/lua-empty-test)

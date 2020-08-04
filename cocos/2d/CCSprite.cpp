@@ -385,26 +385,13 @@ void Sprite::updateShaders(const char* vert, const char* frag)
 void Sprite::setProgramState(backend::ProgramType type)
 {
     setProgramStateWithRegistry(type, _texture);
-    /*if(_programState != nullptr &&
-       _programState->getProgram()->getProgramType() == type)
-        return;
-    
-    auto* program = backend::Program::getBuiltinProgram(type);
-    auto programState = new (std::nothrow) backend::ProgramState(program);
-    setProgramState(programState);
-    CC_SAFE_RELEASE_NULL(programState);*/
 }
 
 void Sprite::setProgramState(backend::ProgramState *programState)
 {
     CCASSERT(programState, "argument should not be nullptr");
     auto& pipelineDescriptor = _trianglesCommand.getPipelineDescriptor();
-    if (_programState != programState)
-    {
-        CC_SAFE_RELEASE(_programState);
-        _programState = programState;
-        CC_SAFE_RETAIN(programState);
-    }
+    Node::setProgramState(programState);
     pipelineDescriptor.programState = _programState;
 
     _mvpMatrixLocation = pipelineDescriptor.programState->getUniformLocation(backend::Uniform::MVP_MATRIX);

@@ -167,6 +167,15 @@ function(cocos_copy_target_dll cocos_target)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${cc_dll_file} "$<TARGET_FILE_DIR:${cocos_target}>/${cc_dll_name}"
         )
     endforeach()
+
+    # Copy win32 angle binaries
+    add_custom_command(TARGET ${cocos_target}
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${COCOS2DX_ROOT_PATH}/external/angle/prebuilt/win32/libGLESv2.dll
+                ${COCOS2DX_ROOT_PATH}/external/angle/prebuilt/win32/libEGL.dll
+                ${COCOS2DX_ROOT_PATH}/external/angle/prebuilt/win32/d3dcompiler_47.dll
+                $<TARGET_FILE_DIR:${cocos_target}>
+            )
 endfunction()
 
 # mark `FILES` as resources, files will be put into sub-dir tree depend on its absolute path
@@ -255,6 +264,7 @@ function(setup_cocos_app_config app_name)
         cocos_def_copy_resource_target(${app_name})
     endif()
 
+    target_link_libraries(${app_name} ${CC_EXTENSION_LIBS})
 endfunction()
 
 # if cc_variable not set, then set it cc_value

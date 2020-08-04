@@ -1,147 +1,91 @@
-# engine-x
+# EGNX
 [![Build Status](https://travis-ci.com/c4games/engine-x.svg?branch=master)](https://travis-ci.com/c4games/engine-x)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/4936wev2r2ot606s/branch/master?svg=true)](https://ci.appveyor.com/project/halx99/engine-x)
 
-This is another more radical fork of cocos2d-x game engine, use opanal for all platforms, single texture multi gpu texture handler, c++17...  
+**This is another more radical fork of ```cocos2d-x v4```, use opanal for all platforms, single texture multi gpu texture handler, c++14/17...**  
   
-The readme of cocos2d-x v4: https://github.com/simdsoft/engine-x/blob/master/README.ccv4.md  
+**[简体中文](README_CN.md)**
   
+### Purpose Summary:
+* C++14/17
+* Forcus on native game dev only
+* Fix bugs ASAP
+* Review PR ASAP
+* Excellent PRs from any guys are welcome, we will review & merge ASAP
   
-### Goals summary:
-1. C++17
-2. forcus on native game dev only
-3. Remove unnecessary sources
-4. Fix bugs ASAP
-5. Review PR ASAP
-6. If you have any other excellent goals, welcome
-7. Excellent PRs from any guys are welcome, I will review & merge ASAP
+### Highlight Features:
+* Refactor AudioEngine, OpenAL for all platforms, and on iOS, can switch to [openal-soft](https://github.com/kcat/openal-soft) through ```-DCC_USE_ALSOFT_ON_APPLE``` since Apple mark OpenAL framework ```deprecated``` on iOS12
+* Refactor UserDefault with [mio](https://github.com/mandreyel/mio), very fast
+* Modularize all optional extension, all move from engine core to folder extensions
+* Add engine extension 'fairygui' support
+* Implement all .wav formats supported by ```openal-soft```, such as MS-ADPCM, ADPCM...
+* Use modern gl loader ```glad``` to instead glew
+* Add google angle renderer backend support
+* Set default C++ standard to 14
+* Set min deploy target ios sdk to 9.0
+* Remove tinyxml2, use more fast pugixml instead
+* Use curl for HttpClient,Downloader on all platforms
+* Use SAX parser for all plist file, remove apple platform spec for getValueMapFromFile stubs
 
-### preprocessors notes: 
+### [Roadmap](https://github.com/c4games/engine-x/issues/1)
 
-```txt
-CC_STATIC  
-  
-_USRDLL  
-_USEGUIDLL  
-_USREXDLL  
-_EXPORT_DLL_  
-  
-_USRSTUDIODLL  
-_USRSTUDIOPDLL  
-```
-
-### Refactor core & extensions libs
-- [ ] engine-x-core.dll(node tree, multi-renderer-backends, filesystem, audio, platform spec, and other):
-  - [x] 1. Refactor audio engine, OpenAL for all platforms.
-  - [x] 2. Remove SimpleAudio
-  - [ ] 3. Remove offthread file operation
-  - [x] 4. Remove getSutiableFOpen, avoid reduce performance, there is another better solution for support: ```just doesn't convert path to utf-8 in FileUtils manually implementation```
-  - [x] 5. Refactor CCDownloader, curl for all platforms, don't use scheduler to retrive progress info, make it more reuseable
-  - [ ] 7. Refactor engine-x-3rd, all compile as vs2019 MSVC 19.22.27905.0
-  - [x] 8. minizip-1.2.0
-  - [x] 9. ccMessageBox
-  - [x] 10. BMP support with stb_image
-  - [x] 11. Remove unused libuv
-  - [ ] 12. Reorder child support
-  - [x] 13. Remove tinyxml2 dep, use pugixml instead
-  - [x] 14. Use xsxml for SAX parser only
-  - [x] 15. Multi meta textures v1.0
-  - [x] 16. ProgramStateRegistry
-  - [ ] 17. Optimize CCFileUtils
-  - [ ] 18. ANGLE support.
-  - [x] 19. Use curl for HttpClient all platforms
-  - [ ]  20. AES encrypt system
-  - [x] 21. Remove xxtea
-  - [x] 22. Remove rapidxml dep
-  - [x] 23. fix etc1 alpha test case, content size incorrect
-  - [ ] 24. Since getSuitableFopen removed, don't convert to utf-8 for win32, or in the future, windows 10 will support utf-8 file path, such as: For Chinese system language users:
-在 控制面板-区域-更改系统区域设置 中
-勾选 Beta版：使用 Unicode UTF=8 提供全球语言支持(U) 选项
-  - [x] 25. ASTC 4x4, 8x8 support for all platforms.
-  - [x] 26. Refine backend sources.
-  - [x] 27. Refactor UserDefault based on file mapping with aes-cfb encrypt support.
-  - [x] 28. Fix OpenGL error 0x501 when load incorrect & unused shader.
-  - [x] 29. Fix OpenGL error 0x501 when use compressd texture on device, caused by backend TextureGL: initWithZeros
-  - [ ] XX1. Cache ProgramState or use object_pool
-  - [ ] XX2. Remove socket.io websockets, use yasio for socket connection solution
-  - [ ] XX3. Fully streaming play for all media file: .mp4, .mp3, .ogg, .wav
-  - [ ] XX4. Streaming load for .ttf with freetype2
-  - [x] XX5. Remove CCB(already removed in v4)
-  - [ ] XX6. Sync 3rd bin
-  - [ ] XX7. Purely offthread load texture, use shared gl context
-  - [ ] XX8. Use git submodule to manage 3rd libs.  
-  
-- [ ] Upgrade 3rd stubs to latest stable edition for all platforms
-  - [ ] zlib to 1.2.11  
-  
---------------------------------------------------------------------------    
-- [ ] engine-x.ui.dll: The original v3-ui framework may remove in the future
-- [ ] engine-x.ext.lib: old GUI ui(could be remove), physics-nodes, pu3d
-- [ ] engine-x.dragonbones.lib
-- [ ] engine-x.ccs20.dll: x-studio
-- [ ] engine-x.ccs21.dll: x-studio
-- [ ] engine-x.xs.dll: x-studio
-- [ ] engine-x.spine.lib  
-----------------------------------------------------------------------------  
-- [ ] engine-x-lua.lib:
-  - [x] Lua53 compat
-  - [ ] make lua test works well
-  - [ ] Remvoe luasocket, use yasio for socket connection solution
----------------------------------------------------------------------------  
-!!! Custom APK support, don't compress .mp4, .mp3, .ogg, .wav, .ttf
----------------------------------------------------------------------------  
-!!!! future of future:
-   - [ ] Use sol2 for binding framework instead tolua++
-   - [ ] Use bgfx for multi renderer backend support
-
-
-
-### 快速开始
-#### windows
-  安装CMake，要求3.6以上<br>
-  根据安装的 Visual Studio 版本，执行下面的命令，解决方案就生成在 build 目录下了。<br>
-  打开cpp-tests.sln，编译运行。<br>
-  ```
-  cd engine-x\tests\cpp-tests
-  cmake -S .\ -B .\build -G “Visual Studio 14 2015 Win32”
-  or 
-  cmake -S .\ -B .\build -G “Visual Studio 16 2019” -A Win32
-  ``` 
-
-#### android
-  安装 Android Studio (推荐3.5.3)，打开 SDKManager，安装下列工具。<br>
-  打开project，目录在engine-x\tests\cpp-tests\proj.android<br>
-  等待Gradle sync完成后，Build APKs，安装运行<br>
-  ```
-    LLDB 推荐3.1
-    CMake 推荐 3.10.2
-    NDK 推荐 20.1
+### Quick Start
+#### Windows
+  1. Install [CMake](https://cmake.org/) 3.6+  
+  2. Install Visual Studio 2019 build(we strong recommand you install this version)  
+  3. Execute follow command at command line(Console, Window Terminal or Powershell)
+  ```bat
+  cd engine-x\
+  cmake -S . -B build -G "Visual Studio 16 2019" -A Win32
   ```
   
-  如果报缺少Ninja, 从https://github.com/ninja-build/ninja/releases下载， 拷贝Ninja.exe到Cmake的bin目录即可
 
-#### ios
-  确保最新版xcode已安装
-  安装brew: ```/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"```  
-  brew安装完成后，确保如下工具安装:  
+#### Android
+  1. Install Android Studio 3.5.3+
+  2. Start Android and choose [Open an existing Android Studio Project] to open ```engine-x\tests\cpp-tests\proj.android```
+  3. Start Android Studio and Open [Tools][SDKManager] and install sdk tools:  
+    LLDB 3.1+  
+    CMake 3.10.2+  
+    NDK 20.1+  
+
+  4. Waiting for ```Gradle sync``` finish.
+  
+  5. Remark: If missing Ninja, could be download from https://github.com/ninja-build/ninja/releases, then copy Ninja.exe to Cmake's bin directory
+
+#### iOS
+  1. Ensure xcode11+ installed
+  2. Install brew: ```/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"```  
+  when finish, install follow tools:
   ```sh
-    brew update
-    brew install git
-    brew install cmake
-    brew install autoconf
-    brew install automake
-    brew install libtool
+      brew update
+      brew install git
+      brew install cmake
+      brew install autoconf
+      brew install automake
+      brew install libtool
   ```
-  执行如下命令确保cmake能成功生成xcode工程:  
+  3. Execute follow command   
   ```sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer```  
-  生成xcode工程, 进入engine-x根目录执行如下命令:  
+  4. Generate xcode project
   ```sh
-    mkdir build
-    cd build
+    mkdir engine-x/build
+    cd engine-x/build
     cmake .. -GXcode -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator
+    # for simulator64
+    # cmake .. -G Xcode -DCMAKE_TOOLCHAIN_FILE=../cmake/ios.toolchain.cmake -DPLATFORM=SIMULATOR64 -DENABLE_ARC=0 -DENABLE_BITCODE=0
+    # for (armv7, armv7s, arm64)
+    # cmake .. -G Xcode -DCMAKE_TOOLCHAIN_FILE=../cmake/ios.toolchain.cmake -DPLATFORM=OS -DENABLE_ARC=0 -DENABLE_BITCODE=0
+    # for device 64
+    # cmake .. -G Xcode -DCMAKE_TOOLCHAIN_FILE=../cmake/ios.toolchain.cmake -DPLATFORM=OS64 -DENABLE_ARC=0 -DENABLE_BITCODE=0
   ```
-  之后就可以用xcode打开, 选择cpp-tests编译运行，其他targets目前均无法编译或运行
-  
-  ### QQ交流群
+  5. After cmake generate finish, you can open xcode project at ```build``` folder and run cpp-tests or other test targets.
 
-  点击链接加入群聊【engine-x交流群】：https://jq.qq.com/?_wv=1027&k=nvNmzOIY
+### Pitfalls
+  * ThreadLocalStorage(TLS) 
+    - ios x86 simulator ios>=10
+    - ios x64 or devices(armv7,arm64) ios sdk>=9.0
+    - the openal-soft maintained by kcat use TLS
+
+### Reference links
+  * engine-x-3rd: https://github.com/c4games/engine-x-3rd
+  * official v4: https://github.com/cocos2d/cocos2d-x

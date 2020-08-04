@@ -123,7 +123,6 @@ else()
     add_library(${APP_NAME} SHARED ${all_code_files})
     add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos/platform/android ${ENGINE_BINARY_PATH}/cocos/platform)
     target_link_libraries(${APP_NAME} -Wl,--whole-archive cpp_android_spec -Wl,--no-whole-archive)
-    target_link_libraries(${APP_NAME} -Wl,--whole-archive ext_ogg ext_vorbis ext_ssl ext_crypto -Wl,--no-whole-archive)
 
     configure_file(${OPENAL_SO_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src/main/jniLibs/${ANDROID_ABI}/${OPENAL_SO_NAME} COPYONLY)
     configure_file(${MPG123_SO_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src/main/jniLibs/${ANDROID_ABI}/${MPG123_SO_NAME} COPYONLY)
@@ -154,14 +153,4 @@ endif()
 if(LINUX OR WINDOWS)
     cocos_get_resource_path(APP_RES_DIR ${APP_NAME})
     cocos_copy_target_res(${APP_NAME} LINK_TO ${APP_RES_DIR} FOLDERS ${GAME_RES_FOLDER})
-endif()
-
-if(WIN32)
-    add_custom_command(TARGET ${APP_NAME}
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                ${COCOS2DX_ROOT_PATH}/external/angle/prebuilt/win32/libGLESv2.dll
-                ${COCOS2DX_ROOT_PATH}/external/angle/prebuilt/win32/libEGL.dll
-                ${COCOS2DX_ROOT_PATH}/external/angle/prebuilt/win32/d3dcompiler_47.dll
-                $<TARGET_FILE_DIR:${APP_NAME}>
-            )
 endif()
