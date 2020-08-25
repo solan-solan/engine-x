@@ -15,6 +15,8 @@ option(BUILD_EXTENSION_COCOSTUDIO "Build extension cocostudio" ON)
 
 option(BUILD_EXTENSION_FAIRYGUI "Build extension FairyGUI" ON)
 
+option(BUILD_EXTENSION_EFFEKSEER "Build extension Effekseer" ON)
+
 function(setup_cocos_extension_config target_name)
   if(ANDROID)
     target_link_libraries(${target_name} INTERFACE cocos2d)
@@ -69,6 +71,10 @@ endif()
 
 if(BUILD_EXTENSION_FAIRYGUI)
   add_subdirectory(fairygui)
+endif()
+
+if(BUILD_EXTENSION_EFFEKSEER)
+  add_subdirectory(effekseer)
 endif()
 
 message(STATUS "CC_EXTENSION_LIBS:${CC_EXTENSION_LIBS}")
