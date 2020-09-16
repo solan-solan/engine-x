@@ -506,9 +506,6 @@ void CommandBufferGL::readPixels(RenderTarget* rt, std::function<void(const Pixe
 
 void CommandBufferGL::readPixels(RenderTarget* rt, GLint x, GLint y, std::size_t width, std::size_t height, PixelBufferDescriptor& pbd)
 {
-    GLint defaultFBO = 0;
-    GLuint frameBuffer = 0;
-
     std::size_t bytesPerRow = 0;
     auto colorAttachment = rt->color[0].texture;
     if (UTILS_LIKELY(!colorAttachment)) // read pixels from screen
@@ -526,21 +523,22 @@ void CommandBufferGL::readPixels(RenderTarget* rt, GLint x, GLint y, std::size_t
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
     auto bufferSize = bytesPerRow * height;
-#if defined(GL_VERSION_2_1)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 && defined(GL_ES_VERSION_3_0)) || \
+    (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID && defined(GL_PIXEL_PACK_BUFFER))
     GLuint pbo;
     glGenBuffers(1, &pbo);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
     glBufferData(GL_PIXEL_PACK_BUFFER, bufferSize, nullptr, GL_STATIC_DRAW);
     glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    auto buffer = (uint8_t*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+    auto buffer = (uint8_t*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, bufferSize, GL_MAP_READ_BIT);
 #else
     std::unique_ptr<uint8_t[]> bufferStorage(new uint8_t[bufferSize]);
     auto buffer = bufferStorage.get();
     memset(buffer, 0, bufferSize);
     glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 #endif
-    uint8_t* wptr = pbd._data.resize(bufferSize);
-    if (wptr) {
+    uint8_t* wptr = nullptr;
+    if (buffer && (wptr = pbd._data.resize(bufferSize))) {
         auto rptr = buffer + (height - 1) * bytesPerRow;
         for (int row = 0; row < height; ++row) {
             memcpy(wptr, rptr, bytesPerRow);
@@ -550,16 +548,12 @@ void CommandBufferGL::readPixels(RenderTarget* rt, GLint x, GLint y, std::size_t
         pbd._width = width;
         pbd._height = height;
     }
-#if defined(GL_VERSION_2_1)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 && defined(GL_ES_VERSION_3_0)) || \
+    (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID && defined(GL_PIXEL_PACK_BUFFER))
     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     glDeleteBuffers(1, &pbo);
 #endif
-
-    // if (UTILS_UNLIKELY(frameBuffer)) {
-    //     glBindFramebuffer(GL_FRAMEBUFFER, defaultFBO);
-    //     glDeleteFramebuffers(1, &frameBuffer);
-    // }
 }
 
 CC_BACKEND_END
