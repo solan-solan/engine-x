@@ -90,6 +90,7 @@ list(APPEND COCOS_RENDERER_HEADER
     renderer/backend/opengl/TextureGL.h
     renderer/backend/opengl/UtilsGL.h
     renderer/backend/opengl/DeviceInfoGL.h
+    renderer/backend/opengl/RenderTargetGL.h
 )
 
 list(APPEND COCOS_RENDERER_SRC
@@ -103,6 +104,7 @@ list(APPEND COCOS_RENDERER_SRC
     renderer/backend/opengl/TextureGL.cpp
     renderer/backend/opengl/UtilsGL.cpp
     renderer/backend/opengl/DeviceInfoGL.cpp
+    renderer/backend/opengl/RenderTargetGL.cpp
 )
 
 else()

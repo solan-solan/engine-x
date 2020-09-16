@@ -38,6 +38,27 @@ class TextureBackend;
  * @{
  */
 
+struct RenderPassFlags {
+    /**
+     * bitmask indicating which buffers to clear at the beginning of a render pass.
+     * This implies discard.
+     */
+    TargetBufferFlags clear;
+
+    /**
+     * bitmask indicating which buffers to discard at the beginning of a render pass.
+     * Discarded buffers have uninitialized content, they must be entirely drawn over or cleared.
+     */
+    TargetBufferFlags discardStart;
+
+    /**
+     * bitmask indicating which buffers to discard at the end of a render pass.
+     * Discarded buffers' content becomes invalid, they must not be read from again.
+     */
+    TargetBufferFlags discardEnd;
+};
+
+
 /**
  * Store values about color, depth and stencil attachment.
  */
@@ -50,15 +71,16 @@ struct RenderPassDescriptor
     float clearDepthValue = 0.f;
     float clearStencilValue = 0.f;
     std::array<float, 4> clearColorValue {{0.f, 0.f, 0.f, 0.f}}; // double-braces required in C++11
+    
+    // TODO: confirm
     bool needColorAttachment = true;
+
+    // For setup Default RenderTarget pipeline
     bool depthTestEnabled = false;
     bool stencilTestEnabled = false;
-    bool needClearColor = false;
-    bool needClearDepth = false;
-    bool needClearStencil = false;
-    TextureBackend* depthAttachmentTexture = nullptr;
-    TextureBackend* stencilAttachmentTexture = nullptr;
-    TextureBackend* colorAttachmentsTexture[MAX_COLOR_ATTCHMENT] = { nullptr };
+
+    // TODO: explicit use, only clear flag needed?
+    RenderPassFlags flags{};
 };
 
 //end of _backend group
