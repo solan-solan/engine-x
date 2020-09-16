@@ -25,6 +25,7 @@ RenderTargetGL::~RenderTargetGL()
                 GL_TEXTURE_2D,
                 0,
                 0);
+
         glFramebufferTexture2D(GL_FRAMEBUFFER,
             GL_DEPTH_ATTACHMENT,
             GL_TEXTURE_2D,
@@ -57,6 +58,7 @@ void RenderTargetGL::setColorAttachment(const ColorAttachment& attachment)
     RenderTarget::setColorAttachment(attachment);
 
     if (_generatedFBO && bitmask::any(targets, TargetBufferFlags::COLOR_ALL)) {
+#if 1
         GLenum bufs[4] = { GL_NONE };
         for (size_t i = 0; i < 4; i++) {
             if (bitmask::any(targets, getMRTColorFlag(i))) {
@@ -71,6 +73,21 @@ void RenderTargetGL::setColorAttachment(const ColorAttachment& attachment)
             }
         }
         glDrawBuffers(4, bufs);
+#else
+        GLenum bufs[4] = { GL_NONE };
+        for (size_t i = 0; i < 4; i++) {
+            if (bitmask::any(targets, getMRTColorFlag(i))) {
+                auto textureInfo = color[i];
+                auto rbo = textureInfo.texture != nullptr ? textureInfo.texture->getHandler() : 0;
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                    GL_COLOR_ATTACHMENT0 + i,
+                    GL_RENDERBUFFER,
+                    rbo);
+                bufs[i] = GL_COLOR_ATTACHMENT0 + i;
+            }
+        }
+        glDrawBuffers(4, bufs);
+#endif
 
         CHECK_GL_ERROR_DEBUG();
     }
@@ -78,37 +95,27 @@ void RenderTargetGL::setColorAttachment(const ColorAttachment& attachment)
 
 void RenderTargetGL::applyColorAttachment() const
 {
-    if (_generatedFBO && bitmask::any(targets, TargetBufferFlags::COLOR_ALL)) {
-        GLenum bufs[4] = { GL_NONE };
-        for (size_t i = 0; i < 4; i++) {
-            if (bitmask::any(targets, getMRTColorFlag(i))) {
-                auto textureInfo = color[i];
-                auto textureHandler = textureInfo.texture != nullptr ? textureInfo.texture->getHandler() : 0;
-                glFramebufferTexture2D(GL_FRAMEBUFFER,
-                    GL_COLOR_ATTACHMENT0 + i,
-                    GL_TEXTURE_2D,
-                    textureHandler,
-                    textureInfo.level);
-                bufs[i] = GL_COLOR_ATTACHMENT0 + i;
-            }
-        }
-        // glDrawBuffers(4, bufs);
-
-        CHECK_GL_ERROR_DEBUG();
-    }
 }
 
 void RenderTargetGL::setDepthAttachment(TextureBackend* attachment, int level)
 {
     RenderTarget::setDepthAttachment(attachment, level);
 
-    if (_generatedFBO) {
-        glFramebufferTexture2D(GL_FRAMEBUFFER,
-            GL_DEPTH_ATTACHMENT,
-            GL_TEXTURE_2D,
-            attachment != nullptr ? attachment->getHandler() : 0,
-            level);
-
+    if (_generatedFBO && attachment) {
+        if (bitmask::none(attachment->getTextureUsage(), TextureUsage::DEPTH_STENCIL_ATTACHMENT)) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER,
+                GL_DEPTH_ATTACHMENT,
+                GL_TEXTURE_2D,
+                attachment != nullptr ? attachment->getHandler() : 0,
+                level);
+        }
+        else {
+            GLuint rbo = attachment != nullptr ? attachment->getHandler() : 0;
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                    GL_DEPTH_ATTACHMENT,
+                    GL_RENDERBUFFER,
+                    rbo);
+        }
         CHECK_GL_ERROR_DEBUG();
     }
 }
@@ -117,12 +124,21 @@ void RenderTargetGL::setStencilAttachment(TextureBackend* attachment, int level)
 {
     RenderTarget::setStencilAttachment(attachment, level);
 
-    if (_generatedFBO) {
-        glFramebufferTexture2D(GL_FRAMEBUFFER,
-            GL_STENCIL_ATTACHMENT,
-            GL_TEXTURE_2D,
-            attachment != nullptr ? attachment->getHandler() : 0,
-            level);
+    if (_generatedFBO && attachment) {
+        if (bitmask::none(attachment->getTextureUsage(), TextureUsage::DEPTH_STENCIL_ATTACHMENT)) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER,
+                GL_STENCIL_ATTACHMENT,
+                GL_TEXTURE_2D,
+                attachment != nullptr ? attachment->getHandler() : 0,
+                level);
+        }
+        else {
+            GLuint rbo = attachment != nullptr ? attachment->getHandler() : 0;
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                GL_STENCIL_ATTACHMENT,
+                GL_RENDERBUFFER,
+                rbo);
+        }
 
         CHECK_GL_ERROR_DEBUG();
     }

@@ -58,7 +58,12 @@ struct TextureInfoGL
     void recreateAll(GLenum target);
 
     void destroy() {
-        foreach([=](GLuint texID, int) { glDeleteTextures(1, &texID); });
+        foreach([=](GLuint texID, int) {
+            if (bitmask::none(this->usage, TextureUsage::DEPTH_STENCIL_ATTACHMENT))
+                glDeleteTextures(1, &texID);
+            else
+                glDeleteRenderbuffers(1, &texID);
+            });
         textures.fill(0);
     }
 
@@ -83,6 +88,10 @@ struct TextureInfoGL
 
     std::array<GLuint, CC_META_TEXTURES + 1> textures;
     int maxIdx = 0;
+
+    TextureUsage usage{};
+    int width = 0;
+    int height = 0;
 };
 
 /**

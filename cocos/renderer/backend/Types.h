@@ -142,12 +142,27 @@ enum class PixelFormat
     NONE = -1
 };
 
-enum class TextureUsage : uint32_t
-{
-    READ,
-    WRITE,
-    RENDER_TARGET
+//enum class TextureUsage : uint32_t
+//{
+//    READ = 0x0,
+//    WRITE = 0x1,
+//    RENDER_TARGET = 0x4,
+//    DEPTH_ATTACHMENT = 0x4,
+//    STENCIL_ATTACHMENT = 0x8,
+//};
+
+//! Bitmask describing the intended Texture Usage
+enum class TextureUsage : uint8_t {
+    COLOR_ATTACHMENT = 0x1,                      //!< Texture can be used as a color attachment
+    DEPTH_ATTACHMENT = 0x2,                      //!< Texture can be used as a depth attachment
+    STENCIL_ATTACHMENT = 0x4,                      //!< Texture can be used as a stencil attachment
+    DEPTH_STENCIL_ATTACHMENT = (0x2 | 0x4),
+    UPLOADABLE = 0x8,                      //!< Data can be uploaded into this texture (default)
+    SAMPLEABLE = 0x10,                     //!< Texture can be sampled (default)
+    SUBPASS_INPUT = 0x20,                     //!< Texture can be used as a subpass input
+    DEFAULT = UPLOADABLE | SAMPLEABLE   //!< Default texture usage
 };
+CC_ENABLE_BITMASK_OPS(TextureUsage)
 
 enum class IndexFormat : uint32_t
 {
@@ -256,7 +271,7 @@ enum class ColorWriteMask : uint32_t
     ALL = 0x0000000F
 };
 CC_ENABLE_BITMASK_OPS(ColorWriteMask)
-CC_ENABLE_BITSHIFT_OPS(ColorWriteMask)
+// CC_ENABLE_BITSHIFT_OPS(ColorWriteMask)
 
 struct SamplerDescriptor
 {

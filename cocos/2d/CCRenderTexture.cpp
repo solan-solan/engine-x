@@ -189,7 +189,7 @@ bool RenderTexture::initWithWidthAndHeight(int w, int h, backend::PixelFormat fo
         backend::TextureDescriptor descriptor;
         descriptor.width = powW;
         descriptor.height = powH;
-        descriptor.textureUsage = TextureUsage::RENDER_TARGET;
+        descriptor.textureUsage = TextureUsage::COLOR_ATTACHMENT;
         descriptor.textureFormat = PixelFormat::RGBA8888;
         auto texture = backend::Device::getInstance()->newTexture(descriptor);
         if (! texture)
@@ -213,6 +213,7 @@ bool RenderTexture::initWithWidthAndHeight(int w, int h, backend::PixelFormat fo
         {
             _renderTargetFlags = RenderTargetFlag::ALL;
             descriptor.textureFormat = depthStencilFormat;
+            descriptor.textureUsage = TextureUsage::DEPTH_STENCIL_ATTACHMENT;
             texture = backend::Device::getInstance()->newTexture(descriptor);
             if (! texture)
                 break;

@@ -104,11 +104,31 @@ GLuint TextureInfoGL::ensure(int index, GLenum target)
     if (index >= CC_META_TEXTURES) return 0;
     // glActiveTexture(GL_TEXTURE0 + index);
     auto& texID = this->textures[index];
-    if (!texID)
-        glGenTextures(1, &texID);
-    glBindTexture(target, texID);
 
-    setCurrentTexParameters(target); // set once
+    if (bitmask::none(this->usage, TextureUsage::DEPTH_STENCIL_ATTACHMENT)) {
+        if (!texID)
+            glGenTextures(1, &texID);
+        glBindTexture(target, texID);
+
+        setCurrentTexParameters(target); // set once
+    }
+    else {
+        if (!texID) {
+            glGenRenderbuffers(1, &texID);
+            glBindRenderbuffer(GL_RENDERBUFFER, texID);
+            // if (samples > 1) {
+            //     // We don't support "implicit" (i.e. EXT_multisampled_render_to_texture) renderbuffer
+            //     // (in practice this means that a texture must be marked 'SAMPLEABLE' if 'implicit'
+            //     // resolves are desired.
+            //     glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, internalformat, width, height);
+            // }
+            // else {
+                glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+            // }
+            // unbind the renderbuffer, to avoid any later confusion
+            glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        }
+    }
 
     if (this->maxIdx < index) this->maxIdx = index;
 
@@ -141,12 +161,19 @@ Texture2DGL::Texture2DGL(const TextureDescriptor& descriptor)
     });
     Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(_backToForegroundListener, -1);
 #endif
-
-    // Update data here because `updateData()` may not be invoked later.
-    // For example, a texture used as depth buffer will not invoke updateData(), see cpp-tests 'Effect Basic/Effects Advanced'.
-    // FIXME: Don't call at Texture2DGL::updateTextureDescriptor, when the texture is compressed, initWithZeros will cause GL Error: 0x501
-    // We call at here once to ensure depth buffer works well.
-    initWithZeros();
+    _textureInfo.usage = descriptor.textureUsage;
+    _textureInfo.width = descriptor.width;
+    _textureInfo.height = descriptor.height;
+    if (bitmask::none(_textureInfo.usage, TextureUsage::DEPTH_STENCIL_ATTACHMENT)) {
+        // Update data here because `updateData()` may not be invoked later.
+        // For example, a texture used as depth buffer will not invoke updateData(), see cpp-tests 'Effect Basic/Effects Advanced'.
+        // FIXME: Don't call at Texture2DGL::updateTextureDescriptor, when the texture is compressed, initWithZeros will cause GL Error: 0x501
+        // We call at here once to ensure depth buffer works well.
+        initWithZeros();
+    }
+    else {
+        _textureInfo.ensure(0, GL_RENDERBUFFER);
+    }
 }
 
 void Texture2DGL::initWithZeros()
@@ -295,7 +322,7 @@ void Texture2DGL::updateCompressedSubData(std::size_t xoffset, std::size_t yoffs
 
 void Texture2DGL::generateMipmaps()
 {
-    if (TextureUsage::RENDER_TARGET == _textureUsage)
+    if (bitmask::any(_textureInfo.usage, TextureUsage::DEPTH_STENCIL_ATTACHMENT))
         return;
 
     if(!_hasMipmaps)
@@ -366,7 +393,7 @@ void TextureCubeGL::updateFaceData(TextureCubeFace side, void *data, int index)
 
 void TextureCubeGL::generateMipmaps()
 {
-    if (TextureUsage::RENDER_TARGET == _textureUsage)
+    if (bitmask::any(_textureInfo.usage, TextureUsage::DEPTH_STENCIL_ATTACHMENT))
         return;
 
     if(!_hasMipmaps)

@@ -44,7 +44,7 @@ struct TextureDescriptor
 {
     TextureType textureType = TextureType::TEXTURE_2D;
     PixelFormat textureFormat = PixelFormat::RGBA8888;
-    TextureUsage textureUsage = TextureUsage::READ;
+    TextureUsage textureUsage = TextureUsage::DEFAULT;
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t depth = 0;
@@ -121,7 +121,7 @@ protected:
 
     TextureType _textureType = TextureType::TEXTURE_2D;
     PixelFormat _textureFormat = PixelFormat::RGBA8888;
-    TextureUsage _textureUsage = TextureUsage::READ;
+    TextureUsage _textureUsage = TextureUsage::DEFAULT;
 };
 
 /**
