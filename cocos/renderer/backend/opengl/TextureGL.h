@@ -57,10 +57,11 @@ struct TextureInfoGL
     GLuint ensure(int index, GLenum target);
     void recreateAll(GLenum target);
 
-    void destroy() {
-        foreach([=](GLuint texID, int) { glDeleteTextures(1, &texID); });
-        textures.fill(0);
-    }
+	void destroy();
+//    void destroy() {
+//        foreach([=](GLuint texID, int) { glDeleteTextures(1, &texID); });
+//        textures.fill(0);
+//    }
 
     /// <summary>
     /// Apply shader texture

@@ -31,6 +31,8 @@
 #include "platform/CCPlatformConfig.h"
 #include "renderer/backend/opengl/UtilsGL.h"
 
+std::vector<int> _texts;
+
 CC_BACKEND_BEGIN
 
 #define ISPOW2(n) (((n) & (n-1)) == 0)
@@ -104,8 +106,11 @@ GLuint TextureInfoGL::ensure(int index, GLenum target)
     if (index >= CC_META_TEXTURES) return 0;
     // glActiveTexture(GL_TEXTURE0 + index);
     auto& texID = this->textures[index];
-    if (!texID)
-        glGenTextures(1, &texID);
+	if (!texID)
+	{
+		glGenTextures(1, &texID);
+		_texts.push_back(texID);
+	}
     glBindTexture(target, texID);
 
     setCurrentTexParameters(target); // set once
@@ -120,12 +125,21 @@ void TextureInfoGL::recreateAll(GLenum target)
     int idx = 0;
     for (auto& texID : textures) {
         if (texID) {
+			_texts.erase(std::find(_texts.begin(), _texts.end(), texID));
             glDeleteTextures(1, &texID);
             texID = 0;
             ensure(idx, target);
         }
         ++idx;
     }
+}
+
+void TextureInfoGL::destroy() {
+	foreach([=](GLuint texID, int) {
+		_texts.erase(std::find(_texts.begin(), _texts.end(), texID));
+		glDeleteTextures(1, &texID); 
+	});
+	textures.fill(0);
 }
 
 /// CLASS Texture2DGL

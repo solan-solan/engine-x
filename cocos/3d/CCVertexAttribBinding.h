@@ -30,6 +30,11 @@
 #include "renderer/CCPass.h"
 #include "3d/CC3DProgramInfo.h"
 
+namespace BigTrip
+{
+	class MeshExt;
+}
+
 NS_CC_BEGIN
 
 class MeshIndexData;
@@ -117,6 +122,8 @@ private:
     std::shared_ptr<backend::VertexLayout> _vertexLayout = std::make_shared<backend::VertexLayout>();
     std::unordered_map<std::string, backend::AttributeBindInfo> _attributes;
     uint32_t _vertexAttribsFlags;
+
+	friend BigTrip::MeshExt;
 };
 
 

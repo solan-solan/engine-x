@@ -29,6 +29,8 @@
 #include "base/CCEventType.h"
 #include "base/CCEventDispatcher.h"
 
+std::vector<int> _buffs;
+
 CC_BACKEND_BEGIN
 
 namespace {
@@ -50,6 +52,7 @@ BufferGL::BufferGL(std::size_t size, BufferType type, BufferUsage usage)
 : Buffer(size, type, usage)
 {
     glGenBuffers(1, &_buffer);
+	_buffs.push_back(_buffer);
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     _backToForegroundListener = EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom*){
@@ -61,9 +64,11 @@ BufferGL::BufferGL(std::size_t size, BufferType type, BufferUsage usage)
 
 BufferGL::~BufferGL()
 {
-    if (_buffer)
-        glDeleteBuffers(1, &_buffer);
-
+	if (_buffer)
+	{
+		_buffs.erase(std::find(_buffs.begin(), _buffs.end(), _buffer));
+		glDeleteBuffers(1, &_buffer);
+	}
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     CC_SAFE_DELETE_ARRAY(_data);
     Director::getInstance()->getEventDispatcher()->removeEventListener(_backToForegroundListener);

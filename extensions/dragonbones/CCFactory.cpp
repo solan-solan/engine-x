@@ -34,7 +34,7 @@ TextureAtlasData* CCFactory::_buildTextureAtlasData(TextureAtlasData* textureAtl
 #if COCOS2D_VERSION >= 0x00040000
                 switch (textureAtlasData->format)
                 {
-                    case TextureFormat::RGBA8888:
+				case /*TextureFormat::RGBA8888*/(TextureFormat)1:
                         pixelFormat = cocos2d::backend::PixelFormat::RGBA8;
                         break;
 
@@ -46,7 +46,7 @@ TextureAtlasData* CCFactory::_buildTextureAtlasData(TextureAtlasData* textureAtl
                         pixelFormat = cocos2d::backend::PixelFormat::RGBA4;
                         break;
 
-                    case TextureFormat::RGB888:
+                    case /*TextureFormat::RGB888*/(TextureFormat)4:
                         pixelFormat = cocos2d::backend::PixelFormat::RGB8;
                         break;
 

@@ -32,6 +32,9 @@
 #include <string>
 #include "base/bitmask.h"
 
+#define RGBA8888 RGBA8
+#define RGB888 RGB8
+
 CC_BACKEND_BEGIN
 
 enum class BufferUsage : uint32_t
