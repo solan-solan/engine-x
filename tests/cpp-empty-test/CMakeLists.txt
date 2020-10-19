@@ -34,7 +34,14 @@ if(XCODE)
 endif()
 
 if(NOT DEFINED BUILD_ENGINE_DONE)
-    set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+    if(NOT ("$ENV{COCOS2DX_ROOT}" STREQUAL ""))
+        message(STATUS "Using system env var COCOS2DX_ROOT=$ENV{COCOS2DX_ROOT}")
+        set(COCOS2DX_ROOT_PATH "$ENV{COCOS2DX_ROOT}")
+        string(REPLACE "\\" "/" COCOS2DX_ROOT_PATH ${COCOS2DX_ROOT_PATH})
+    else()
+        set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+    endif()
+    
     set(CMAKE_MODULE_PATH ${COCOS2DX_ROOT_PATH}/cmake/Modules/)
 
     include(CocosBuildSet)
@@ -124,7 +131,7 @@ else()
     add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos/platform/android ${ENGINE_BINARY_PATH}/cocos/platform)
     target_link_libraries(${APP_NAME} -Wl,--whole-archive cpp_android_spec -Wl,--no-whole-archive)
 
-    config_android_shared_libs("org.cocos2dx.${APP_NAME}" "${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src")
+    config_android_shared_libs("org.cocos2dx.lib" "${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src")
 endif()
 
 target_link_libraries(${APP_NAME} ${EGNX_CORE_LIB})

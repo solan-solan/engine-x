@@ -11,7 +11,14 @@ if(XCODE)
 endif()
 
 if(NOT DEFINED BUILD_ENGINE_DONE)
-    set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
+    if(NOT ("$ENV{COCOS2DX_ROOT}" STREQUAL ""))
+        message(STATUS "Using system env var COCOS2DX_ROOT=$ENV{COCOS2DX_ROOT}")
+        set(COCOS2DX_ROOT_PATH "$ENV{COCOS2DX_ROOT}")
+        string(REPLACE "\\" "/" COCOS2DX_ROOT_PATH ${COCOS2DX_ROOT_PATH})
+    else()
+        set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
+    endif()
+
     set(CMAKE_MODULE_PATH ${COCOS2DX_ROOT_PATH}/cmake/Modules/)
 
     include(CocosBuildSet)
@@ -26,7 +33,7 @@ set(res_src_folders
     "${CMAKE_CURRENT_SOURCE_DIR}/../src"
     )
 set(res_script_folders
-    "${COCOS2DX_ROOT_PATH}/cocos/scripting/lua-bindings/script"
+    "${COCOS2DX_ROOT_PATH}/extensions/scripting/lua-bindings/script"
     )
 if(APPLE OR VS)
     cocos_mark_multi_resources(res_res RES_TO "Resources/res" FOLDERS ${res_res_folders})
@@ -94,10 +101,10 @@ else()
     add_library(${APP_NAME} SHARED ${APP_SRC})
     add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos/platform/android ${ENGINE_BINARY_PATH}/cocos/cpp-android)
     target_link_libraries(${APP_NAME} -Wl,--whole-archive cpp_android_spec -Wl,--no-whole-archive)
-    add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos/scripting/lua-bindings/proj.android ${ENGINE_BINARY_PATH}/cocos/lua-android)
+    add_subdirectory(${COCOS2DX_ROOT_PATH}/extensions/scripting/lua-bindings/proj.android ${ENGINE_BINARY_PATH}/cocos/lua-android)
     target_link_libraries(${APP_NAME} -Wl,--whole-archive lua_android_spec -Wl,--no-whole-archive)
 
-    config_android_shared_libs("org.cocos2dx.${APP_NAME}" "${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src")
+    config_android_shared_libs("org.cocos2dx.lib" "${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src")
 endif()
 
 target_link_libraries(${APP_NAME} luacocos2d)

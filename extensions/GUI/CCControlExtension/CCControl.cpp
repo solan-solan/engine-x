@@ -119,12 +119,9 @@ void Control::sendActionsForControlEvents(EventType controlEvents)
                 invocation->invoke(this);
             }
 
-#if CC_ENABLE_SCRIPT_BINDING
-            //Call ScriptFunc
             cocos2d::BasicScriptData data(this,(void*)&controlEvents);
             cocos2d::ScriptEvent event(cocos2d::kControlEvent,(void*)&data);
-            cocos2d::ScriptEngineManager::sendEventToLua(event);
-#endif
+            cocos2d::ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(event);
         }
     }
 	release();

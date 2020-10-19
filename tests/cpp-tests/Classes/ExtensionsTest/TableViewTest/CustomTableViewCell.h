@@ -27,6 +27,9 @@
 
 #include "cocos2d.h"
 #include "extensions/cocos-ext.h"
+#include "GUI/CCControlExtension/CCControlExtensions.h"
+#include "GUI/CCScrollView/CCScrollView.h"
+#include "GUI/CCScrollView/CCTableView.h"
 
 class CustomTableViewCell : public cocos2d::extension::TableViewCell
 {
