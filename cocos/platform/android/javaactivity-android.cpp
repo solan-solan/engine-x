@@ -93,7 +93,9 @@ JNIEXPORT void Java_org_cocos2dx_lib_Cocos2dxRenderer_nativeInit(JNIEnv*  env, j
         cocos2d::EventCustom recreatedEvent(EVENT_RENDERER_RECREATED);
         director->getEventDispatcher()->dispatchEvent(&recreatedEvent);
         director->setGLDefaultValues();
+#if    (CC_ENABLE_CACHE_TEXTURE_DATA == 1)
         cocos2d::VolatileTextureMgr::reloadAllTextures();
+#endif
     }
 }
 

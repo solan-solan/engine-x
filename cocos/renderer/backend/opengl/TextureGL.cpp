@@ -125,7 +125,9 @@ void TextureInfoGL::recreateAll(GLenum target)
     int idx = 0;
     for (auto& texID : textures) {
         if (texID) {
-			_texts.erase(std::find(_texts.begin(), _texts.end(), texID));
+            auto it = std::find(_texts.begin(), _texts.end(), texID);
+            assert(it != _texts.end());
+            _texts.erase(std::find(_texts.begin(), _texts.end(), texID));
             glDeleteTextures(1, &texID);
             texID = 0;
             ensure(idx, target);
@@ -136,8 +138,10 @@ void TextureInfoGL::recreateAll(GLenum target)
 
 void TextureInfoGL::destroy() {
 	foreach([=](GLuint texID, int) {
-		_texts.erase(std::find(_texts.begin(), _texts.end(), texID));
-		glDeleteTextures(1, &texID); 
+	    auto it = std::find(_texts.begin(), _texts.end(), texID);
+	    assert(it != _texts.end());
+	    _texts.erase(it);
+		glDeleteTextures(1, &texID);
 	});
 	textures.fill(0);
 }

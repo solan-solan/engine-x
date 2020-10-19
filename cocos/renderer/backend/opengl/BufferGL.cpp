@@ -66,7 +66,9 @@ BufferGL::~BufferGL()
 {
 	if (_buffer)
 	{
-		_buffs.erase(std::find(_buffs.begin(), _buffs.end(), _buffer));
+	    auto it = std::find(_buffs.begin(), _buffs.end(), _buffer);
+	    assert(it != _buffs.end());
+	    _buffs.erase(it);
 		glDeleteBuffers(1, &_buffer);
 	}
 #if CC_ENABLE_CACHE_TEXTURE_DATA
