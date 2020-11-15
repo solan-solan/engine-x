@@ -1,11 +1,12 @@
 # Engine-x
+[![dev](https://img.shields.io/badge/v1.0.0-alpha19-yellow.svg)](https://github.com/c4games/engine-x/releases)
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/c4games/engine-x/blob/master/LICENSE)
+  
 [![Android Build Status](https://github.com/c4games/engine-x/workflows/android/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Aandroid)
 [![iOS Build Status](https://github.com/c4games/engine-x/workflows/ios/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Aios)
 [![Windows Build Status](https://github.com/c4games/engine-x/workflows/win32/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Awin32)
 [![Linux Build Status](https://github.com/c4games/engine-x/workflows/linux/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Alinux)
 [![macOS Build Status](https://github.com/c4games/engine-x/workflows/osx/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Aosx)  
-
-[![dev](https://img.shields.io/badge/v1.0.0-alpha19-yellow.svg)](https://github.com/c4games/engine-x/releases)
 
 **This is another more radical fork of *Cocos2d-x-4.0*, use OpenAL for all platforms, single texture multi GPU texture handler, C++14/17, etc.**  
   
@@ -18,6 +19,7 @@
 * Usefull PRs from **you** are welcome (review/merge ASAP)
   
 ### Highlight Features:
+* **More clearly thirdparty libs Upstram & Version & License for easy to publish your commercial apps based on engine-x**
 * Refactor AudioEngine, OpenAL for all platforms
   * [openal-soft](https://github.com/kcat/openal-soft), pass -DBUILD_EXT_ALSOFT=ON to cmake to force enable it
   * [OpenAL.framework](https://opensource.apple.com/tarballs/OpenAL), if no ```BUILD_EXT_ALSOFT``` option specified, cmake script will choose it on osx/ios, even through it was mark as deprecated, but still available.
@@ -80,14 +82,14 @@
   ```sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer```  
   3. Generate xcode project
   ```sh
-    # for device arm64
+    # for any device
     cmake -S . -B build -GXcode -DCMAKE_TOOLCHAIN_FILE=cmake/ios.mini.cmake
 
     # for device combined armv7,arm64
     # cmake -S . -B build -GXcode -DCMAKE_TOOLCHAIN_FILE=cmake/ios.mini.cmake "-DCMAKE_OSX_ARCHITECTURES=armv7;arm64"
 
     # for simulator x86_64
-    # cmake -S . -B build -GXcode -DCMAKE_TOOLCHAIN_FILE=cmake/ios.mini.cmake -DCMAKE_OSX_SYSROOT=iphonesimulator
+    # cmake -S . -B build -GXcode -DCMAKE_TOOLCHAIN_FILE=cmake/ios.mini.cmake -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=x86_64
   ```
   4. After cmake generate finish, you can open xcode project at ```build``` folder and run cpp-tests or other test targets.  
 

@@ -1,11 +1,14 @@
 # Engine-x
+
+[![dev](https://img.shields.io/badge/v1.0.0-alpha19-yellow.svg)](https://github.com/c4games/engine-x/releases)
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/c4games/engine-x/blob/master/LICENSE)
+  
 [![Android Build Status](https://github.com/c4games/engine-x/workflows/android/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Aandroid)
 [![iOS Build Status](https://github.com/c4games/engine-x/workflows/ios/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Aios)
 [![Windows Build Status](https://github.com/c4games/engine-x/workflows/win32/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Awin32)
 [![Linux Build Status](https://github.com/c4games/engine-x/workflows/linux/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Alinux)
 [![macOS Build Status](https://github.com/c4games/engine-x/workflows/osx/badge.svg)](https://github.com/c4games/engine-x/actions?query=workflow%3Aosx)  
 
-[![dev](https://img.shields.io/badge/v1.0.0-alpha19-yellow.svg)](https://github.com/c4games/engine-x/releases)
 
 **这是另外一个基于 *Cocos2d-x-4.0* 持续维护的分支, 全平台基于OpenAL, c++14/17...**
   
@@ -86,7 +89,7 @@
     # cmake -S . -B build -GXcode -DCMAKE_TOOLCHAIN_FILE=cmake/ios.mini.cmake "-DCMAKE_OSX_ARCHITECTURES=armv7;arm64"
 
     # for simulator x86_64
-    # cmake -S . -B build -GXcode -DCMAKE_TOOLCHAIN_FILE=cmake/ios.mini.cmake -DCMAKE_OSX_SYSROOT=iphonesimulator
+    # cmake -S . -B build -GXcode -DCMAKE_TOOLCHAIN_FILE=cmake/ios.mini.cmake -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=x86_64
   ```
   4. 之后就可以用xcode打开, 选择cpp-tests编译运行
 
@@ -103,3 +106,4 @@
 ### 参考链接
   * engine-x-3rd: https://github.com/c4games/engine-x-3rd
   * official v4: https://gitee.com/mirrors/cocos2d-x
+  * Git快速手册: https://github.com/c4games/engine-x/wiki/Git-Guides

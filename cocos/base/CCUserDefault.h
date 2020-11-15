@@ -32,7 +32,6 @@ THE SOFTWARE.
 
 #include <unordered_map>
 #include "mio/mio.hpp"
-#include "yasio/cxx17/string_view.hpp"
 
 /**
  * @addtogroup base
@@ -84,7 +83,7 @@ public:
     int     getIntegerForKey(const char* key);
     
     /**
-     * Get bool value by key, if the key doesn't exist, will return passed default value.
+     * Get integer value by key, if the key doesn't exist, will return passed default value.
      * @param key The key to get value.
      * @param defaultValue The default value to return if the key doesn't exist.
      * @return Integer value of the key.
@@ -93,7 +92,7 @@ public:
     virtual int getIntegerForKey(const char* key, int defaultValue);
 
     /**
-     * Get integer value by key, if the key doesn't exist, will return 0.
+     * Get large integer value by key, if the key doesn't exist, will return 0.
      * You can set the default value, or it is 0.
      * @param key The key to get value.
      * @return Integer value of the key.
@@ -102,7 +101,7 @@ public:
     int64_t   getLargeIntForKey(const char* key);
 
     /**
-     * Get bool value by key, if the key doesn't exist, will return passed default value.
+     * Get large integer value by key, if the key doesn't exist, will return passed default value.
      * @param key The key to get value.
      * @param defaultValue The default value to return if the key doesn't exist.
      * @return Integer value of the key.
@@ -178,7 +177,7 @@ public:
      */
     virtual void setIntegerForKey(const char* key, int value);
     /**
-     * Set integer value by key.
+     * Set large integer value by key.
      * @param key The key to set.
      * @param value A integer value to set to the key.
      * @js NA
@@ -207,7 +206,8 @@ public:
     virtual void setStringForKey(const char* key, const std::string & value);
 
     /**
-     * You should invoke this function to save values set by setXXXForKey().
+     * Since we reimplement UserDefault with file mapping io,
+     * you don't needs call this function manually
      * @js NA
      */
     virtual void flush();
@@ -246,7 +246,7 @@ public:
     **   key: 16bytes key
     **   iv: 16bytes iv
     */
-    virtual void setEncryptEnabled(bool enabled, const cxx17::string_view& key, const cxx17::string_view& iv);
+    virtual void setEncryptEnabled(bool enabled, const std::string& key, const std::string& iv);
 
     /*
     *  Mark encrypt function as virtual, default use AES cfb128 encrypt/decrypt
@@ -260,11 +260,18 @@ protected:
     UserDefault();
     virtual ~UserDefault();
     
-    void init();
+    void lazyInit();
 
     void closeFileMapping();
 
+    // The low level API of all getXXXForKey
+    const std::string* getValueForKey(const std::string& key);
+
+    // The low level API of all setXXXForKey
     void setValueForKey(const std::string& key, const std::string& value);
+
+    // Update value without lazyInit
+    void updateValueForKey(const std::string& key, const std::string& value);
 
 protected:
 

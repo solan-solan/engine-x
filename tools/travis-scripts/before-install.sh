@@ -56,6 +56,9 @@ function install_environement_for_pull_request()
         sudo apt-get update
         sudo apt-get install ninja-build
         ninja --version
+
+        sudo apt-get install nasm
+        nasm -v
         
         if [ "$BUILD_TARGET" == "linux" ]; then
             install_linux_environment
@@ -63,6 +66,9 @@ function install_environement_for_pull_request()
     fi
 
     if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+        brew install nasm
+        nasm -v
+        
         install_python_module_for_osx
     fi
 
