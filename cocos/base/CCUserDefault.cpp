@@ -313,7 +313,7 @@ void UserDefault::setStringForKey(const char* pKey, const std::string & value)
         if ((_realSize + obs.length() + sizeof(udflen_t)) < _curMapSize)
         { // fast append entity without flush
             // increase entities count
-            yasio::obstream::swrite_ix(_rwmmap->data(), 1 + yasio::ibstream::sread_ix<udflen_t>(_rwmmap->data()));
+            yasio::obstream::swrite(_rwmmap->data(), 1 + yasio::ibstream::sread<udflen_t>(_rwmmap->data()));
 
             // append entity
             ::memcpy(_rwmmap->data() + sizeof(udflen_t) + _realSize, obs.data(), obs.length());
@@ -379,7 +379,7 @@ void UserDefault::lazyInit()
         return;
     }
 
-    int filesize = posix_lseek(_fd, 0, SEEK_END);
+    int filesize = static_cast<int>(posix_lseek(_fd, 0, SEEK_END));
     posix_lseek(_fd, 0, SEEK_SET);
 
     if (filesize < _curMapSize) { // construct a empty file mapping
@@ -393,7 +393,7 @@ void UserDefault::lazyInit()
 
             if (ibs.length() > 0) {
                 // read count of keyvals.
-                int count = ibs.read_ix<int>();
+                int count = ibs.read<int>();
                 for (auto i = 0; i < count; ++i) {
                     std::string key(ibs.read_v());
                     std::string value(ibs.read_v());
@@ -404,7 +404,7 @@ void UserDefault::lazyInit()
                     }
                     updateValueForKey(key, value);
                 }
-                _realSize = ibs.seek(0, SEEK_CUR) - sizeof(udflen_t);
+                _realSize = static_cast<int>(ibs.seek(0, SEEK_CUR) - sizeof(udflen_t));
             }
         }
         else {
@@ -418,7 +418,7 @@ void UserDefault::lazyInit()
     pugi::xml_parse_result ret = doc.load_file(_filePath.c_str());
     if (ret) {
         for (auto& elem : doc.document_element())
-            setValueForKey(elem.name(), elem.text().as_string());
+            updateValueForKey(elem.name(), elem.text().as_string());
     }
     else {
         log("UserDefault::init load xml file: %s failed, %s", _filePath.c_str(), ret.description());
@@ -433,7 +433,7 @@ void UserDefault::flush()
 #if !USER_DEFAULT_PLAIN_MODE
     if (_rwmmap) {
         yasio::obstream obs;
-        obs.write_ix<int>(static_cast<int>(this->_values.size()));
+        obs.write<int>(static_cast<int>(this->_values.size()));
         for (auto& item : this->_values) {
             if (_encryptEnabled)
             {
@@ -457,7 +457,7 @@ void UserDefault::flush()
         if (!error && _rwmmap->is_mapped())
         { // mapping status is good
             ::memcpy(_rwmmap->data(), obs.data(), obs.length());
-            _realSize = obs.length() - sizeof(udflen_t);
+            _realSize = static_cast<int>(obs.length() - sizeof(udflen_t));
         }
         else {
             // close file mapping and do a simple workaround fix to don't do persist later at this time

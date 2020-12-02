@@ -50,12 +50,11 @@
 
 #### 准备步骤
   1. 进入引擎```engine-x```根目录
-  2. 执行```python download-deps.py```等待下载第三方库完成
   3. 执行```python setup.py```后重启控制台
 
 #### Windows
   1. 安装CMake，要求3.14以上  
-  2. 确保Visual Studio 2019以正确安装
+  2. 确保 Visual Studio 2019 已正确安装
   3. 执行下面的命令
   ```bat
   cd engine-x
@@ -95,7 +94,7 @@
 
 ### 注意
   * ThreadLocalStorage线程本地存储
-    - ios x86 simulator ios>=10
+    - ios x86 simulator ios>=10 and engine-x no longer provide x86 libraries
     - ios x64 or devices(armv7,arm64) ios sdk>=9.0
     - the openal-soft maintained by kcat use TLS
 
@@ -104,6 +103,5 @@
   点击链接加入群聊【engine-x交流群】：https://jq.qq.com/?_wv=1027&k=nvNmzOIY
   
 ### 参考链接
-  * engine-x-3rd: https://github.com/c4games/engine-x-3rd
   * official v4: https://gitee.com/mirrors/cocos2d-x
   * Git快速手册: https://github.com/c4games/engine-x/wiki/Git-Guides

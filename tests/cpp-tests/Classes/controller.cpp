@@ -53,9 +53,12 @@ public:
         addTest("Actions - Ease", [](){return new (std::nothrow) ActionsEaseTests(); });
         addTest("Actions - Progress", [](){return new (std::nothrow) ActionsProgressTests(); });
         addTest("Audio - NewAudioEngine", []() { return new (std::nothrow) AudioEngineTests(); });
-#if CC_ENABLE_CHIPMUNK_INTEGRATION
-       addTest("Chipmunk", []() { return new ChipmunkTests(); });
-#endif
+
+
+        addTest("Box2d - Basic", []() { return new (std::nothrow) Box2DTests(); });
+//      addTest("Box2d - TestBed", []() { return new (std::nothrow) Box2dTestBedSuite(); });
+        addTest("Chipmunk", []() { return new ChipmunkTests(); });
+
         addTest("Bugs", []() { return new BugsTests(); });
         addTest("Click and Move", [](){return new ClickAndMoveTest(); });
         addTest("Configuration", []() { return new ConfigurationTests(); });
@@ -90,7 +93,11 @@ public:
         addTest("Node: Particles", [](){return new ParticleTests(); });
         addTest("Node: Particle3D (PU)", [](){return new Particle3DTests(); });
 #if CC_USE_PHYSICS
-       addTest("Node: Physics", []() { return new PhysicsTests(); });
+#if CC_ENABLE_CHIPMUNK_INTEGRATION
+        addTest("Node: Physics (Chipmunk2D)", []() { return new PhysicsTests(); });
+#elif CC_ENABLE_BOX2D_INTEGRATION
+        addTest("Node: Physics (Box2D)", []() { return new PhysicsTests(); });
+#endif   
 #endif
         addTest("Node: Physics3D", []() { return new Physics3DTests(); } );
         addTest("Node: RenderTexture", [](){return new RenderTextureTests(); });
