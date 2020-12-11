@@ -181,6 +181,7 @@ YASIO_LUA_API int luaopen_yasio(lua_State* L)
           case YOPT_C_ENABLE_MCAST:
           case YOPT_C_LOCAL_ENDPOINT:
           case YOPT_C_REMOTE_ENDPOINT:
+          case YOPT_C_MOD_FLAGS:
             service->set_option(opt, static_cast<int>(va[0]), va[1].as<const char*>(),
                                 static_cast<int>(va[2]));
             break;
@@ -324,6 +325,10 @@ YASIO_LUA_API int luaopen_yasio(lua_State* L)
   YASIO_EXPORT_ENUM(YOPT_C_ENABLE_MCAST);
   YASIO_EXPORT_ENUM(YOPT_C_DISABLE_MCAST);
   YASIO_EXPORT_ENUM(YOPT_C_KCP_CONV);
+  YASIO_EXPORT_ENUM(YOPT_C_MOD_FLAGS);
+
+  YASIO_EXPORT_ENUM(YCF_REUSEADDR);
+  YASIO_EXPORT_ENUM(YCF_EXCLUSIVEADDRUSE);
 
   YASIO_EXPORT_ENUM(YEK_CONNECT_RESPONSE);
   YASIO_EXPORT_ENUM(YEK_CONNECTION_LOST);
@@ -533,6 +538,7 @@ YASIO_LUA_API int luaopen_yasio(lua_State* L)
                   case YOPT_C_ENABLE_MCAST:
                   case YOPT_C_LOCAL_ENDPOINT:
                   case YOPT_C_REMOTE_ENDPOINT:
+                  case YOPT_C_MOD_FLAGS:
                     service->set_option(opt, static_cast<int>(args[0]),
                                         static_cast<const char*>(args[1]),
                                         static_cast<int>(args[2]));
@@ -679,6 +685,10 @@ YASIO_LUA_API int luaopen_yasio(lua_State* L)
   YASIO_EXPORT_ENUM(YOPT_C_ENABLE_MCAST);
   YASIO_EXPORT_ENUM(YOPT_C_DISABLE_MCAST);
   YASIO_EXPORT_ENUM(YOPT_C_KCP_CONV);
+  YASIO_EXPORT_ENUM(YOPT_C_MOD_FLAGS);
+
+  YASIO_EXPORT_ENUM(YCF_REUSEADDR);
+  YASIO_EXPORT_ENUM(YCF_EXCLUSIVEADDRUSE);
 
   YASIO_EXPORT_ENUM(YEK_CONNECT_RESPONSE);
   YASIO_EXPORT_ENUM(YEK_CONNECTION_LOST);
@@ -696,13 +706,14 @@ YASIO_LUA_API int luaopen_yasio(lua_State* L)
 #endif /* YASIO__HAS_CXX17 */
 
 extern "C" {
-YASIO_LUA_API void lyasio_set_print_fn(void* inst, void (*pfn)(const char*))
+YASIO_LUA_API void luaregister_yasio(lua_State* L)
 {
-  if (inst)
-  {
-    auto service            = (io_service*)inst;
-    print_fn_t custom_print = pfn;
-    service->set_option(YOPT_S_PRINT_FN, &custom_print);
-  }
+  lua_getglobal(L, "package");
+  lua_getfield(L, -1, "preload");
+
+  lua_pushcfunction(L, luaopen_yasio);
+  lua_setfield(L, -2, "yasio");
+
+  lua_pop(L, 2);
 }
 }

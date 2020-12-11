@@ -218,12 +218,12 @@ struct yasio__global_state {
     yasio__min_wait_duration = std::thread::hardware_concurrency() > 1 ? 0LL : YASIO_MIN_WAIT_DURATION;
 #if defined(YASIO_HAVE_SSL)
     if (OPENSSL_init_ssl(0, NULL) == 1)
-      yasio__setbits(this->init_flags, INITF_SSL);
+      yasio__setbits(this->init_flags_, INITF_SSL);
 #endif
 #if defined(YASIO_HAVE_CARES)
     int ares_status = ::ares_library_init(ARES_LIB_INIT_ALL);
     if (ares_status == 0)
-      yasio__setbits(init_flags, INITF_CARES);
+      yasio__setbits(init_flags_, INITF_CARES);
     else
       YASIO_KLOGI("[global] c-ares library init failed, status=%d, detail:%s", ares_status, ::ares_strerror(ares_status));
 #  if defined(__ANDROID__)
@@ -241,12 +241,13 @@ struct yasio__global_state {
   ~yasio__global_state()
   {
 #if defined(YASIO_HAVE_CARES)
-    if (yasio__testbits(this->init_flags, INITF_CARES))
+    if (yasio__testbits(this->init_flags_, INITF_CARES))
       ::ares_library_cleanup();
 #endif
   }
 
-  int init_flags = 0;
+  int init_flags_ = 0;
+  print_fn2_t cprint_;
 };
 static yasio__global_state& yasio__shared_globals(const print_fn2_t& prt = nullptr)
 {
@@ -465,9 +466,7 @@ bool io_transport::do_write(highp_time_t& wait_duration)
       auto& v = *wrap;
       if (call_write(v.get(), error) < 0)
       {
-        set_last_errno(error);
-        YASIO_KLOGE("[index: %d] the connection #%u will lost due to write failed, ec=%d, detail:%s", this->cindex(), this->id_, error,
-                    io_service::strerror(error));
+        this->set_last_errno(error, yasio::net::io_base::error_stage::WRITE);
         break;
       }
     }
@@ -533,8 +532,8 @@ int io_transport::call_write(io_send_op* op, int& error)
       n = 0;
     else if (yasio__testbits(ctx_->properties_, YCM_UDP))
     { // UDP: don't cause handle_close, simply drop the op
-        this->complete_op(op, error);
-        n = 0;
+      this->complete_op(op, error);
+      n = 0;
     }
   }
   return n;
@@ -676,8 +675,8 @@ void io_transport_udp::set_primitives()
       if (n < 0)
       {
         auto error = xxsocket::get_last_errno();
-        if (YASIO__SEND_FAIL(error)) 
-            YASIO_KLOGI("[index: %d] write udp socket failed, ec=%d, detail:%s", this->cindex(), error, io_service::strerror(error));
+        if (YASIO__SEND_FAIL(error))
+          YASIO_KLOGI("[index: %d] write udp socket failed, ec=%d, detail:%s", this->cindex(), error, io_service::strerror(error));
       }
       return n;
     };
@@ -777,7 +776,8 @@ void io_transport_kcp::check_timeout(highp_time_t& wait_duration) const
 #endif
 
 // ------------------------ io_service ------------------------
-void io_service::init_globals(const yasio::inet::print_fn2_t& prt) { yasio__shared_globals(prt); }
+void io_service::init_globals(const yasio::inet::print_fn2_t& prt) { yasio__shared_globals(prt).cprint_ = prt; }
+void io_service::cleanup_globals() { yasio__shared_globals().cprint_ = nullptr; }
 io_service::io_service() { this->init(nullptr, 1); }
 io_service::io_service(int channel_count) { this->init(nullptr, channel_count); }
 io_service::io_service(const io_hostent& channel_ep) { this->init(&channel_ep, 1); }
@@ -795,7 +795,9 @@ void io_service::start(event_cb_t cb)
 {
   if (state_ == io_service::state::IDLE)
   {
-    yasio__shared_globals();
+    auto& global_state = yasio__shared_globals();
+    if (!this->options_.print_)
+      this->options_.print_ = global_state.cprint_;
 
     if (cb)
       options_.on_event_ = std::move(cb);
@@ -1126,7 +1128,8 @@ void io_service::handle_close(transport_handle_t thandle)
   auto ec  = thandle->error_;
 
   // @Because we can't retrive peer endpoint when connect reset by peer, so use id to trace.
-  YASIO_KLOGD("[index: %d] the connection #%u(%p) is lost, ec=%d, detail:%s", ctx->index_, thandle->id_, thandle, ec, io_service::strerror(ec));
+  YASIO_KLOGD("[index: %d] the connection #%u(%p) is lost, ec=%d, where=%d, detail:%s", ctx->index_, thandle->id_, thandle, ec, (int)thandle->error_stage_,
+              io_service::strerror(ec));
 
   // @Notify connection lost
   this->handle_event(event_ptr(new io_event(ctx->index_, YEK_CONNECTION_LOST, ec, thandle)));
@@ -1631,7 +1634,7 @@ void io_service::do_nonblocking_accept_completion(io_channel* ctx, fd_set* fds_a
         {
           error = xxsocket::get_last_errno();
           if (YASIO__RECV_FAIL(error))
-              YASIO_KLOGE("[index: %d] recvfrom failed, ec=%d, detail:%s", ctx->index_, error, this->strerror(error));
+            YASIO_KLOGE("[index: %d] recvfrom failed, ec=%d, detail:%s", ctx->index_, error, this->strerror(error));
         }
       }
     }
@@ -1701,8 +1704,8 @@ void io_service::notify_connect_succeed(transport_handle_t t)
   auto& s  = t->socket_;
   YASIO_KLOGV("[index: %d] sndbuf=%d, rcvbuf=%d", ctx->index_, s->get_optval<int>(SOL_SOCKET, SO_SNDBUF), s->get_optval<int>(SOL_SOCKET, SO_RCVBUF));
 
-  YASIO_KLOGD("[index: %d] the connection #%u(%p) [%s] --> [%s] is established.", ctx->index_, t->id_, t,
-              t->local_endpoint().to_string().c_str(), t->remote_endpoint().to_string().c_str());
+  YASIO_KLOGD("[index: %d] the connection #%u(%p) [%s] --> [%s] is established.", ctx->index_, t->id_, t, t->local_endpoint().to_string().c_str(),
+              t->remote_endpoint().to_string().c_str());
   this->handle_event(event_ptr(new io_event(ctx->index_, YEK_CONNECT_RESPONSE, 0, t)));
 }
 transport_handle_t io_service::allocate_transport(io_channel* ctx, std::shared_ptr<xxsocket> socket)
@@ -1785,11 +1788,11 @@ bool io_service::do_read(transport_handle_t transport, fd_set* fds_array)
                                                          YASIO_MAX_PDU_BUFFER_SIZE)); // #perfomance, avoid memory reallocte.
           unpack(transport, transport->expected_size_, n, bytes_to_strip);
         }
-        else if (length == 0) // header insufficient, wait readfd ready at next event step.
+        else if (length == 0) // header insufficient, wait readfd ready at next event frame.
           transport->wpos_ += n;
         else
         {
-          transport->set_last_errno(yasio::errc::invalid_packet);
+          transport->set_last_errno(yasio::errc::invalid_packet, yasio::net::io_base::error_stage::READ);
           break;
         }
       }
@@ -1800,9 +1803,7 @@ bool io_service::do_read(transport_handle_t transport, fd_set* fds_array)
     }
     else
     { // n < 0, regard as connection should close
-      transport->set_last_errno(error);
-      YASIO_KLOGE("[index: %d] the connection #%u will lost due to read failed, ec=%d, detail:%s", transport->cindex(), transport->id_, error,
-                  io_service::strerror(error));
+      transport->set_last_errno(error, yasio::net::io_base::error_stage::READ);
       break;
     }
 
