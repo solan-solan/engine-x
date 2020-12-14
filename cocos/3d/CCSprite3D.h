@@ -289,7 +289,7 @@ public:
         Vector<backend::ProgramState*>   programStates;
         NodeDatas*      nodedatas;
         MaterialDatas*  materialdatas;
-        ~Sprite3DData()
+        virtual ~Sprite3DData()
         {
             if (nodedatas)
                 delete nodedatas;
