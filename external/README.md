@@ -16,12 +16,12 @@
 
 ## Bullet
 - Upstream: https://github.com/bulletphysics/bullet3
-- Version: 3.07
+- Version: 3.08
 - License: zlib
 
 ## c-ares
 - Upstream: https://github.com/c-ares/c-ares
-- Version: git 1.61.1-0d252eb (2021)
+- Version: 1.17.1
 - License: MIT
 
 ## Chipmunk2D
@@ -218,7 +218,7 @@
 
 ## yasio
 - Upstream: https://github.com/yasio/yasio
-- Version: 3.34.1
+- Version: 3.37.0
 - License: MIT WITH Anti-996
 
 ## zlib

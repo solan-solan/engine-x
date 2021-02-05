@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////////////
-// A multi-platform support c++11 library with focus on asynchronous socket I/O for any 
+// A multi-platform support c++11 library with focus on asynchronous socket I/O for any
 // client application.
 //////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -21,28 +21,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#ifndef YASIO__UE4_HPP
-#define YASIO__UE4_HPP
+#ifndef YASIO__FP16_HPP
+#define YASIO__FP16_HPP
+#include "yasio/detail/config.hpp"
 
-/*
-UE4 builtin namespace 'UI' conflicit with openssl typedef strcut st_UI UI;
-ossl_typ.h(143): error C2365: 'UI': redefinition; previous definition was 'namespace'
-*/
-#define UI UI_ST
-
-THIRD_PARTY_INCLUDES_START
-#pragma push_macro("check")
-#undef check
-#define YASIO_HEADER_ONLY 1
-#define YASIO_SSL_BACKEND 1
-#include "yasio/yasio.hpp"
-#include "yasio/obstream.hpp"
-#include "yasio/ibstream.hpp"
-using namespace yasio;
-using namespace yasio::inet;
-#pragma pop_macro("check")
-THIRD_PARTY_INCLUDES_END
-
-#undef UI
+#if defined(YASIO_HAVE_HALF_FLOAT)
+// Includes IEEE 754 16-bit half-precision floating-point library
+#  include "half/half.hpp"
+typedef half_float::half fp16_t;
+#endif
 
 #endif

@@ -1,11 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////
-// A cross platform socket APIs, support ios & android & wp8 & window store
-// universal app
+// A multi-platform support c++11 library with focus on asynchronous socket I/O for any
+// client application.
 //////////////////////////////////////////////////////////////////////////////////////////
 /*
 The MIT License (MIT)
 
-Copyright (c) 2012-2020 HALX99
+Copyright (c) 2012-2021 HALX99
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,38 @@ SOFTWARE.
 #include <fstream>
 #include "yasio/cxx17/string_view.hpp"
 #include "yasio/detail/endian_portable.hpp"
+#include "yasio/detail/utils.hpp"
 namespace yasio
 {
-template <typename _ConvertTraits> class basic_obstream {
+namespace detail
+{
+template <typename _Stream, typename _Intty> inline void write_ix_impl(_Stream* stream, _Intty value)
+{
+  // Write out an int 7 bits at a time.  The high bit of the byte,
+  // when on, tells reader to continue reading more bytes.
+  auto v = (typename std::make_unsigned<_Intty>::type)value; // support negative numbers
+  while (v >= 0x80)
+  {
+    stream->write_byte((uint8_t)((uint32_t)v | 0x80));
+    v >>= 7;
+  }
+  stream->write_byte((uint8_t)v);
+}
+template <typename _Stream, typename _Intty> struct write_ix_helper {};
+
+template <typename _Stream> struct write_ix_helper<_Stream, int32_t> {
+  static void write_ix(_Stream* stream, int32_t value) { write_ix_impl<_Stream, int32_t>(stream, value); }
+};
+
+template <typename _Stream> struct write_ix_helper<_Stream, int64_t> {
+  static void write_ix(_Stream* stream, int64_t value) { write_ix_impl<_Stream, int64_t>(stream, value); }
+};
+} // namespace detail
+
+template <typename _Traits> class basic_obstream {
 public:
-  using traits_type = _ConvertTraits;
+  using convert_traits_type = _Traits;
+  using this_type           = basic_obstream<_Traits>;
 
   basic_obstream(size_t capacity = 128) { buffer_.reserve(capacity); }
   basic_obstream(const basic_obstream& rhs) : buffer_(rhs.buffer_) {}
@@ -98,6 +125,36 @@ public:
     offset_stack_.pop();
   }
 
+  void push(int size)
+  {
+    size = yasio::clamp(size, 1, YASIO_SSIZEOF(int));
+
+    auto bufsize = buffer_.size();
+    offset_stack_.push(bufsize);
+    buffer_.resize(bufsize + size);
+  }
+
+  void pop(int size)
+  {
+    size = yasio::clamp(size, 1, YASIO_SSIZEOF(int));
+
+    auto offset = offset_stack_.top();
+    auto value  = static_cast<int>(buffer_.size() - offset - size);
+    value       = convert_traits_type::toint(value, size);
+    ::memcpy(this->data() + offset, &value, size);
+    offset_stack_.pop();
+  }
+
+  void pop(int value, int size)
+  {
+    size = yasio::clamp(size, 1, YASIO_SSIZEOF(int));
+
+    auto offset = offset_stack_.top();
+    value       = convert_traits_type::toint(value, size);
+    ::memcpy(this->data() + offset, &value, size);
+    offset_stack_.pop();
+  }
+
   basic_obstream& operator=(const basic_obstream& rhs)
   {
     buffer_ = rhs.buffer_;
@@ -145,32 +202,34 @@ public:
   const std::vector<char>& buffer() const { return buffer_; }
   std::vector<char>& buffer() { return buffer_; }
 
+  void clear()
+  {
+    buffer_.clear();
+    std::stack<size_t> tmp;
+    tmp.swap(offset_stack_);
+  }
+  void shrink_to_fit() { buffer_.shrink_to_fit(); }
+
   template <typename _Nty> inline void write(_Nty value)
   {
-    auto nv = traits_type::template to<_Nty>(value);
+    auto nv = convert_traits_type::template to<_Nty>(value);
     write_bytes(&nv, sizeof(nv));
   }
 
-  /* write 7bit encoded variant integer value
-  ** @dotnet BinaryWriter.Write7BitEncodedInt(64)
-  */
-  template <typename _Intty> inline void write_ix(_Intty value)
+  template <typename _Intty> void write_ix(_Intty value) { detail::write_ix_helper<this_type, _Intty>::write_ix(this, value); }
+
+  void write_varint(int value, int size)
   {
-    // Write out an int 7 bits at a time.  The high bit of the byte,
-    // when on, tells reader to continue reading more bytes.
-    auto v = (typename std::make_unsigned<_Intty>::type)value; // support negative numbers
-    while (v >= 0x80)
-    {
-      write_byte((uint8_t)((uint32_t)v | 0x80));
-      v >>= 7;
-    }
-    write_byte((uint8_t)v);
+    size = yasio::clamp(size, 1, YASIO_SSIZEOF(int));
+
+    value = convert_traits_type::toint(value, size);
+    write_bytes(&value, size);
   }
 
   template <typename _Nty> inline void pwrite(ptrdiff_t offset, const _Nty value) { swrite(this->data() + offset, value); }
   template <typename _Nty> static void swrite(void* ptr, const _Nty value)
   {
-    auto nv = traits_type::template to<_Nty>(value);
+    auto nv = convert_traits_type::template to<_Nty>(value);
     ::memcpy(ptr, &nv, sizeof(nv));
   }
 
@@ -205,13 +264,26 @@ private:
       write_bytes(value.data(), size);
   }
 
+  template <typename _Intty> inline void write_ix_impl(_Intty value)
+  {
+    // Write out an int 7 bits at a time.  The high bit of the byte,
+    // when on, tells reader to continue reading more bytes.
+    auto v = (typename std::make_unsigned<_Intty>::type)value; // support negative numbers
+    while (v >= 0x80)
+    {
+      write_byte((uint8_t)((uint32_t)v | 0x80));
+      v >>= 7;
+    }
+    write_byte((uint8_t)v);
+  }
+
 protected:
   std::vector<char> buffer_;
   std::stack<size_t> offset_stack_;
 }; // CLASS basic_obstream
 
-using obstream      = basic_obstream<::yasio::endian::convert_traits<::yasio::endian::network_convert_tag>>;
-using fast_obstream = basic_obstream<::yasio::endian::convert_traits<::yasio::endian::host_convert_tag>>;
+using obstream      = basic_obstream<::yasio::convert_traits<::yasio::network_convert_tag>>;
+using fast_obstream = basic_obstream<::yasio::convert_traits<::yasio::host_convert_tag>>;
 
 } // namespace yasio
 
