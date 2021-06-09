@@ -224,14 +224,17 @@ void Bone3D::updateLocalMat()
                     scale.x += it.localScale.x * weight;
                     scale.y += it.localScale.y * weight;
                     scale.z += it.localScale.z * weight;
-                    if (!quat.isZero())
-                    {
-                        Quaternion& q = _blendStates[0].localRot;
-                        if (q.x * quat.x + q.y * quat.y + q.z * quat.z + q.w * quat.w < 0)
-                            weight = -weight;
-                    }
-                    quat = Quaternion(it.localRot.x * weight + quat.x, it.localRot.y * weight + quat.y, it.localRot.z * weight + quat.z, it.localRot.w * weight + quat.w);
+//                    if (!quat.isZero())
+//                    {
+//                        Quaternion& q = _blendStates[0].localRot;
+//                        if (q.x * quat.x + q.y * quat.y + q.z * quat.z + q.w * quat.w < 0)
+//                            weight = -weight;
+//                    }
+//                    quat = Quaternion(it.localRot.x * weight + quat.x, it.localRot.y * weight + quat.y, it.localRot.z * weight + quat.z, it.localRot.w * weight + quat.w);
                 }
+
+				Quaternion::slerp(_blendStates[0].localRot, _blendStates[1].localRot, _blendStates[1].weight * invTotal, &quat);
+
                 quat.normalize();
             }
         }
