@@ -158,10 +158,13 @@ void log(const char * format, ...)
     OutputDebugStringW(wbuf.c_str());
 
 #if CC_LOG_TO_CONSOLE
-    if (GetStdHandle(STD_INPUT_HANDLE)) {
+    auto hStdout = ::GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hStdout) {
         // print to console if possible
-        wprintf(L"%s", wbuf.c_str());
-        fflush(stdout);
+        // since we use win32 API, the ::fflush call doesn't required.
+        // see: https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers#return-value
+        DWORD wcch = static_cast<DWORD>(wbuf.size());
+        ::WriteConsoleW(hStdout, wbuf.c_str(), wcch, nullptr, 0);
     }
 #endif
 
@@ -1491,8 +1494,8 @@ void Console::commandUpload(int fd)
     static std::string writablePath = FileUtils::getInstance()->getWritablePath();
     std::string filepath = writablePath + std::string(buf);
 
-    FILE* fp = fopen(filepath.c_str(), "wb");
-    if(!fp)
+    auto fs = FileUtils::getInstance()->openFileStream(filepath, FileStream::Mode::WRITE);
+    if(!fs)
     {
         const char err[] = "can't create file!\n";
         Console::Utility::sendToConsole(fd, err, strlen(err));
@@ -1517,11 +1520,10 @@ void Console::commandUpload(int fd)
         int dt = base64Decode(in, 4, &decode);
         if (dt > 0)
         {
-            fwrite(decode, dt, 1, fp);
+            fs->write(decode, dt);
         }
         free(decode);
     }
-    fclose(fp);
 }
 
 void Console::commandVersion(int fd, const std::string& /*args*/)

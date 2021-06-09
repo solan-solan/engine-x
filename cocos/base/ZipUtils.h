@@ -29,6 +29,8 @@ THE SOFTWARE.
 #define __SUPPORT_ZIPUTILS_H__
 /// @cond DO_NOT_SHOW
 
+#include <ioapi.h>
+
 #include "platform/CCPlatformMacros.h"
 #include "platform/CCFileUtils.h"
 #include <string>
@@ -304,6 +306,7 @@ namespace cocos2d
         int zfread(ZipFileStream* zfs, void* buf, unsigned int size);
         long zfseek(ZipFileStream* zfs, long offset, int origin);
         void zfclose(ZipFileStream* zfs);
+        long long zfsize(ZipFileStream* zfs);
 
         /**
         *  Gets resource file data from a zip file.
@@ -316,6 +319,7 @@ namespace cocos2d
         CC_DEPRECATED() static unsigned char* getFileDataFromZip(const std::string& zipFilePath, const std::string& filename, ssize_t* size);
         
     private:
+        void fillFunctionOverrides();
         /* Only used internal for createWithBuffer() */
         ZipFile();
         
@@ -324,6 +328,7 @@ namespace cocos2d
         
         /** Internal data like zip file pointer / file list array and so on */
         ZipFilePrivate *_data;
+        zlib_filefunc_def _functionOverrides{};
     };
 } // end of namespace cocos2d
 
