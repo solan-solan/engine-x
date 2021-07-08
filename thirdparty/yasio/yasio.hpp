@@ -75,6 +75,7 @@ typedef struct ares_addrinfo ares_addrinfo;
 
 namespace yasio
 {
+YASIO__NS_INLINE
 namespace inet
 {
 // options
@@ -126,23 +127,31 @@ enum
   // params: connect_timeout:int(10)
   YOPT_S_CONNECT_TIMEOUT,
 
+  // Set connect timeout in milliseconds
+  // params: connect_timeout : int(10000),
+  YOPT_S_CONNECT_TIMEOUTMS,
+
   // Set dns cache timeout in seconds
   // params: dns_cache_timeout : int(600),
   YOPT_S_DNS_CACHE_TIMEOUT,
 
-  // Set dns queries timeout in milliseconds, default is: 5000
-  // params: dns_queries_timeout : int(5000)
+  // Set dns cache timeout in milliseconds
+  // params: dns_cache_timeout : int(600000),
+  YOPT_S_DNS_CACHE_TIMEOUTMS,
+
+  // Set dns queries timeout in seconds, default is: 5
+  // params: dns_queries_timeout : int(5)
   // remarks:
   //         a. this option must be set before 'io_service::start'
   //         b. only works when have c-ares
-  //         c. since v3.33.0 it's milliseconds, previous is seconds.
-  //         d. the timeout algorithm of c-ares is complicated, usually, by default, dns queries
+  //         c. the timeout algorithm of c-ares is complicated, usually, by default, dns queries
   //         will failed with timeout after more than 75 seconds.
-  //         e. for more detail, please see:
+  //         d. for more detail, please see:
   //         https://c-ares.haxx.se/ares_init_options.html
   YOPT_S_DNS_QUERIES_TIMEOUT,
 
-  // [DEPRECATED], same with YOPT_S_DNS_QUERIES_TIMEOUT
+  // Set dns queries timeout in milliseconds, default is: 5000
+  // see also: YOPT_S_DNS_QUERIES_TIMEOUT
   YOPT_S_DNS_QUERIES_TIMEOUTMS,
 
   // Set dns queries tries when timeout reached, default is: 5
@@ -291,6 +300,23 @@ enum
   YLOG_E,
 };
 
+namespace errc
+{
+enum
+{
+  no_error              = 0,   // No error.
+  read_timeout          = -28, // The remote host did not respond after a period of time.
+  invalid_packet        = -27, // Invalid packet.
+  resolve_host_failed   = -26, // Resolve host failed.
+  no_available_address  = -25, // No available address to connect.
+  shutdown_by_localhost = -24, // Local shutdown the connection.
+  ssl_handshake_failed  = -23, // SSL handshake failed.
+  ssl_write_failed      = -22, // SSL write failed.
+  ssl_read_failed       = -21, // SSL read failed.
+  eof                   = -20, // end of file.
+};
+}
+
 // class fwds
 class highp_timer;
 class io_send_op;
@@ -345,6 +371,9 @@ struct io_hostent {
 
 class YASIO_API highp_timer {
 public:
+  highp_timer()                   = default;
+  highp_timer(const highp_timer&) = delete;
+  highp_timer(highp_timer&&)      = delete;
   void expires_from_now(const std::chrono::microseconds& duration)
   {
     this->duration_    = duration;
@@ -485,6 +514,9 @@ public:
   long long bytes_transferred() const { return bytes_transferred_; }
   unsigned int connect_id() const { return connect_id_; }
 
+#if !defined(YASIO_NO_USER_TIMER)
+  highp_timer& get_user_timer() { return this->user_timer_; }
+#endif
 protected:
   YASIO__DECL void enable_multicast_group(const ip::endpoint& ep, int loopback);
   YASIO__DECL int join_multicast_group();
@@ -541,6 +573,10 @@ private:
   // The timer for check resolve & connect timeout
   highp_timer timer_;
 
+#if !defined(YASIO_NO_USER_TIMER)
+  // The timer for user
+  highp_timer user_timer_;
+#endif
   // The stream mode application protocol (based on tcp/udp/kcp) unpack params
   struct __unnamed01 {
     int max_frame_length       = YASIO_SZ(10, M); // 10MBytes
@@ -792,21 +828,21 @@ inline io_packet::size_type packet_len(packet_t& pkt) { return pkt->size(); }
 class io_event final {
 public:
   io_event(int cidx, int kind, int status, io_channel* source /*not nullable*/, int passive = 0)
-      : kind_(kind), passive_(passive), writable_(0), status_(status), cindex_(cidx), source_id_(source->id_), source_(source)
+      : kind_(kind), writable_(0), passive_(passive), status_(status), cindex_(cidx), source_id_(source->id_), source_(source)
   {
 #if !defined(YASIO_MINIFY_EVENT)
     source_ud_ = source_->ud_.ptr;
 #endif
   }
-  io_event(int cidx, int kind, int status, io_transport* source /*not nullable*/, int passive = 0)
-      : kind_(kind), passive_(passive), writable_(1), status_(status), cindex_(cidx), source_id_(source->id_), source_(source)
+  io_event(int cidx, int kind, int status, io_transport* source /*not nullable*/)
+      : kind_(kind), writable_(1), passive_(0), status_(status), cindex_(cidx), source_id_(source->id_), source_(source)
   {
 #if !defined(YASIO_MINIFY_EVENT)
     source_ud_ = source_->ud_.ptr;
 #endif
   }
   io_event(int cidx, io_packet&& pkt, io_transport* source /*not nullable*/)
-      : kind_(YEK_ON_PACKET), passive_(0), writable_(1), status_(0), cindex_(cidx), source_id_(source->id_), source_(source), packet_(wrap_packet(pkt))
+      : kind_(YEK_ON_PACKET), writable_(1), passive_(0), status_(0), cindex_(cidx), source_id_(source->id_), source_(source), packet_(wrap_packet(pkt))
   {
 #if !defined(YASIO_MINIFY_EVENT)
     source_ud_ = source_->ud_.ptr;
@@ -866,8 +902,6 @@ private:
   highp_time_t timestamp_ = highp_clock();
 #endif
 };
-
-static const int io_event_size = sizeof(io_event);
 
 class YASIO_API io_service // lgtm [cpp/class-many-fields]
 {
@@ -1021,7 +1055,7 @@ private:
 #endif
 
 #if defined(YASIO_HAVE_CARES)
-  static void ares_getaddrinfo_cb(void* arg, int status, int timeouts, ares_addrinfo* answerlist);
+  YASIO__DECL static void ares_getaddrinfo_cb(void* arg, int status, int timeouts, ares_addrinfo* answerlist);
   void ares_work_started() { ++ares_outstanding_work_; }
   void ares_work_finished()
   {
@@ -1183,6 +1217,9 @@ private:
 }; // io_service
 
 } // namespace inet
+#if !YASIO__HAS_NS_INLINE
+using namespace yasio::inet;
+#endif
 } /* namespace yasio */
 
 #define yasio_shared_service yasio::gc::singleton<yasio::inet::io_service>::instance

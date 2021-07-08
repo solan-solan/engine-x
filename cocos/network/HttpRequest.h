@@ -2,8 +2,9 @@
  Copyright (c) 2010-2012 cocos2d-x.org
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2021 Bytedance Inc.
 
- http://www.cocos2d-x.org
+ https://adxe.org
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +30,8 @@
 
 #include <string>
 #include <vector>
+#include <memory>
+#include <future>
 #include "base/CCRef.h"
 #include "base/ccMacros.h"
 
@@ -58,6 +61,7 @@ typedef void (cocos2d::Ref::*SEL_HttpResponse)(HttpClient* client, HttpResponse*
 
 class CC_DLL HttpRequest : public Ref
 {
+    friend class HttpClient;
 public:
     /**
      * The HttpRequest type enum used in the HttpRequest::setRequestType.
@@ -147,9 +151,9 @@ public:
      *
      * @return const char* the pointer of _url.
      */
-    const char* getUrl() const
+    const std::string& getUrl() const
     {
-        return _url.c_str();
+        return _url;
     }
 
     /**
@@ -324,6 +328,23 @@ public:
     const std::vector<std::string>& getHosts() const { return _hosts; }
 
 private:
+    void setSync(bool sync) {
+        if (sync)
+            _syncState = std::make_shared<std::promise<HttpResponse*>>();
+        else
+            _syncState.reset();
+    }
+
+    std::shared_ptr<std::promise<HttpResponse*>> getSyncState() {
+        return _syncState;
+    }
+
+    HttpResponse* wait() {
+        if (_syncState)
+            return _syncState->get_future().get();
+        return nullptr;
+    }
+
     void doSetResponseCallback(Ref* pTarget, SEL_HttpResponse pSelector)
     {
         if (_pTarget)
@@ -351,6 +372,8 @@ protected:
     void*                       _pUserData;      /// You can add your customed data here
     std::vector<std::string>    _headers;        /// custom http headers
     std::vector<std::string>    _hosts;
+
+    std::shared_ptr<std::promise<HttpResponse*>> _syncState;
 };
 
 }

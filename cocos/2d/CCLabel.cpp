@@ -704,7 +704,7 @@ void Label::updateShaderProgram()
         auto texture = _getTexture(this);
         if(texture)
         {
-            programType = backend::ProgramStateRegistry::getInstance()->getProgramType(programType, texture->getTextureFormatEXT());
+            programType = backend::ProgramStateRegistry::getInstance()->getProgramType(programType, texture->getSamplerFlags());
         }
     }
     else
@@ -725,7 +725,8 @@ void Label::updateShaderProgram()
                     auto texture = _getTexture(this);
                     if(texture)
                     {
-                        programType = backend::ProgramStateRegistry::getInstance()->getProgramType(programType, texture->getTextureFormatEXT());
+                        programType = backend::ProgramStateRegistry::getInstance()->getProgramType(
+                            programType, texture->getSamplerFlags());
                     }
                 }
                 break;
@@ -2441,6 +2442,10 @@ void Label::setGlobalZOrder(float globalZOrder)
     {
         _underlineNode->setGlobalZOrder(globalZOrder);
     }
+
+#if CC_LABEL_DEBUG_DRAW
+    _debugDrawNode->setGlobalZOrder(globalZOrder);
+#endif
 }
 
 float Label::getRenderingFontSize()const

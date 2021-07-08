@@ -6,7 +6,7 @@
 
 ## astc
 - Upstream: https://github.com/ARM-software/astc-encoder
-- Version: git a3b8609 (1010)
+- Version: git 3.0-2003150 (1076)
 - License: Apache-2.0
 
 ## Box2D
@@ -49,14 +49,9 @@
 - Version: git d02e47d 
 - License: MIT
 
-## fastlib
-- Upstream: https://github.com/simdsoft/fastlib
-- Version: git f85644f
-- License: Apache-2.0
-
 ## flatbuffers
 - Upstream: https://github.com/google/flatbuffers
-- Version: 1.12.0
+- Version: 2.0.0
 - License: Apache-2.0
 
 ## FreeType
@@ -71,7 +66,7 @@
 
 ## glfw
 - Upstream: https://github.com/glfw/glfw
-- Version: git 0e9ec77 (4239)
+- Version: git 6876cf8 (4261)
 - License: zlib
 
 ## glsl-optimizer
@@ -87,6 +82,11 @@
 ## kcp
 - Upstream: https://github.com/skywind3000/kcp
 - Version: 1.7
+- License: MIT
+
+## llhttp
+- Upstream: https://github.com/nodejs/llhttp
+- Version: 6.0.3
 - License: MIT
 
 ## lua
@@ -196,8 +196,8 @@
 - Version: git 1.1.0-17fd4ba (4098)
 - License: Google Inc
 
-## xsxml
-- Upstream: https://github.com/simdsoft/xsxml
+## xsbase
+- Upstream: https://github.com/simdsoft/xsbase
 - Version: 1.0
 - License: MIT
 
@@ -206,9 +206,14 @@
 - Version: 0.8.0
 - License: BSD-2-Clause
 
+## yaml-cpp
+- Upstream: https://github.com/jbeder/yaml-cpp
+- Version: git 9ee3928 (884)
+- License: MIT
+
 ## yasio
 - Upstream: https://github.com/yasio/yasio
-- Version: 3.37.0
+- Version: 3.37.3
 - License: MIT WITH Anti-996
 
 ## zlib
